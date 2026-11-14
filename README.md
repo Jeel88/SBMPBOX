@@ -1,36 +1,206 @@
+# 📦 SBMPBOX
 
-# SBMPBOX 📦
+**A Python code collection and downloader.**
 
-### Your Python CodeBox
+SBMPBOX is a lightweight Python package that lets users browse a collection of Python code files and download the selected file directly to their local system.
 
-SBMPBOX is a Python-based code downloader that allows
-users to access and download individual Python code
-files from a centralized GitHub repository.
+## ✨ Features
 
-## Features
+- 📂 Automatically lists available `.txt` code files.
+- 🔢 Simple number-based selection menu.
+- 📥 Downloads only the selected file.
+- 💻 Saves files directly to the current working directory.
+- ⚡ Lightweight and easy to use.
+- 🌐 Internet required only for installation and updates.
+- 🔌 Works offline after installation.
 
-- Download individual Python code files.
-- Simple command-line interface.
-- Access code from any computer.
-- Powered by Python and GitHub.
+## 📦 Installation
 
-## Installation
+Install SBMPBOX using pip:
 
 ```bash
-pip install sbmpbox
+python -m pip install sbmpbox
 ```
 
-## Usage
+## 🚀 Usage
+
+### Run from the terminal
 
 ```bash
 sbmpbox
 ```
 
-## Developer
+### Run from Python Shell
 
-Jeel Savaliya
+```python
+from sbmpbox.cli import main
 
-## License
+main()
+```
 
-MIT License
+### Example
 
+```text
+========================
+       SBMPBOX
+========================
+
+Available Python Codes:
+
+1. code1.txt
+2. Exit
+
+Enter your choice:
+```
+
+Enter the number of the file you want to download.
+
+The selected file will be saved in your current working directory.
+
+## 📁 Project Structure
+
+```text
+SBMPBOX/
+│
+├── src/
+│   └── sbmpbox/
+│       ├── __init__.py
+│       ├── cli.py
+│       └── codes/
+│           └── code1.txt
+│
+├── .github/
+│   └── workflows/
+│       └── publish.yml
+│
+├── README.md
+└── pyproject.toml
+```
+
+## 🛠️ Technologies Used
+
+- Python
+- Setuptools
+- PyPI
+- GitHub Actions
+
+## 🔄 Updates
+
+SBMPBOX uses GitHub Actions to automate package publishing.
+
+When a new version is prepared:
+
+1. Add new `.txt` files inside `src/sbmpbox/codes/`.
+2. Update the package version in `pyproject.toml` and `src/sbmpbox/__init__.py`.
+3. Push the changes to GitHub.
+4. Create and push a new version tag.
+
+GitHub Actions automatically builds and publishes the package to PyPI.
+
+
+
+## 🔄 Updating SBMPBOX
+
+To update SBMPBOX to the latest published version:
+
+```bash
+python -m pip install --upgrade sbmpbox
+```
+
+To install a specific version:
+
+```bash
+python -m pip install sbmpbox==0.1.1
+```
+
+To check the installed version:
+
+```python
+import sbmpbox
+print(sbmpbox.__version__)
+```
+
+## 🗑️ Uninstalling SBMPBOX
+
+To remove SBMPBOX from your system:
+
+```bash
+python -m pip uninstall sbmpbox
+```
+
+Confirm the uninstall when prompted.
+
+## 📌 Version Management
+
+SBMPBOX follows version-based releases.
+
+Example:
+
+- `0.1.0` – Initial release
+- `0.1.1` – Package structure fix
+- `0.1.2` – Future improvements
+
+Each new release must use a unique version number. Published PyPI versions cannot be overwritten.
+
+## 🧑‍💻 Developer Commands
+
+Useful Git commands for maintaining the project:
+
+```bash
+# Stage all changes
+git add .
+
+# Commit changes
+git commit -m "Describe your changes"
+
+# Push changes
+git push origin main
+
+# Create a new version tag
+git tag v0.1.2
+
+# Push the version tag
+git push origin v0.1.2
+```
+
+Pushing a new version tag triggers the GitHub Actions publishing workflow.
+
+**Note:** Updating or uninstalling SBMPBOX does not automatically delete files that were previously downloaded from it. Those files remain in your local folders.
+
+ebuild SBMPBOX locally
+Open PowerShell in your project folder.
+
+1. Install the build tool (if needed):
+python -m pip install --upgrade build
+
+
+2. Clean the old build files:
+Remove-Item -Recurse -Force build, dist, src\sbmpbox.egg-info -ErrorAction SilentlyContinue
+
+
+3. Build the new version:
+python -m build
+
+
+4. Inspect the new wheel:
+python -m zipfile -l dist\sbmpbox-0.1.1-py3-none-any.whl
+
+
+Expected result
+You must see:
+sbmpbox/__init__.py
+sbmpbox/cli.py
+sbmpbox/codes/code1.txt
+
+
+
+
+## 👨‍💻 Author
+
+**Jeel Savaliya**
+
+GitHub: [Jeel88](https://github.com/Jeel88)
+
+## 📄 License
+
+This project is licensed under the MIT License.
