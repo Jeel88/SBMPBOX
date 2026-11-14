@@ -7,4 +7,4 @@ src/sbmpbox.egg-info/SOURCES.txt
 src/sbmpbox.egg-info/dependency_links.txt
 src/sbmpbox.egg-info/entry_points.txt
 src/sbmpbox.egg-info/top_level.txt
-src/sbmpbox/codes/code1.txt
+src/sbmpbox/codes/OS_ALL_In_ONE.txt
