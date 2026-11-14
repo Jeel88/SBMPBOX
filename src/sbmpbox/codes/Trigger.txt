@@ -1,0 +1,59 @@
+Q: Create DB, Student table & Audit_Log table?
+
+SQL
+CREATE DATABASE CollegeDB;
+USE CollegeDB;
+
+CREATE TABLE Student (
+  Student_ID INT PRIMARY KEY,
+  Student_Name VARCHAR(50),
+  Marks INT
+);
+
+CREATE TABLE Audit_Log (
+  Log_ID INT AUTO_INCREMENT PRIMARY KEY,
+  Student_ID INT,
+  Action_Type VARCHAR(20),
+  Old_Marks INT,
+  New_Marks INT,
+  Action_Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+Q: Create AFTER INSERT trigger to log additions?
+
+SQL
+DELIMITER //
+CREATE TRIGGER After_Student_Insert
+AFTER INSERT ON Student
+FOR EACH ROW
+BEGIN
+  INSERT INTO Audit_Log (Student_ID, Action_Type, Old_Marks, New_Marks)
+  VALUES (NEW.Student_ID, 'INSERT', NULL, NEW.Marks);
+END //
+DELIMITER ;
+Q: Create AFTER UPDATE trigger to log marks changes?
+
+SQL
+DELIMITER //
+CREATE TRIGGER After_Student_Update
+AFTER UPDATE ON Student
+FOR EACH ROW
+BEGIN
+  INSERT INTO Audit_Log (Student_ID, Action_Type, Old_Marks, New_Marks)
+  VALUES (NEW.Student_ID, 'UPDATE', OLD.Marks, NEW.Marks);
+END //
+DELIMITER ;
+Q: Insert records, update student marks & verify tables?
+
+SQL
+-- Triggers AFTER INSERT
+INSERT INTO Student VALUES
+(101, 'Amit', 75),
+(102, 'Priya', 85),
+(103, 'Rahul', 68);
+
+-- Triggers AFTER UPDATE
+UPDATE Student SET Marks = 90 WHERE Student_ID = 101;
+
+-- Verify records
+SELECT * FROM Student;
+SELECT * FROM Audit_Log;

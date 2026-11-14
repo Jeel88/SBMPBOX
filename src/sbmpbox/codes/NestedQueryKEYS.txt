@@ -1,0 +1,77 @@
+Q: Create DB & tables with Primary/Foreign keys?
+
+SQL
+CREATE DATABASE CollegeDB;
+USE CollegeDB;
+
+CREATE TABLE Department (
+  DeptID INT PRIMARY KEY,
+  DeptName VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE Student (
+  StudentID INT PRIMARY KEY,
+  StudentName VARCHAR(50) NOT NULL,
+  DeptID INT,
+  Marks DECIMAL(5,2),
+  FOREIGN KEY (DeptID) REFERENCES Department(DeptID)
+);
+Q: Insert sample data & verify?
+
+SQL
+INSERT INTO Department (DeptID, DeptName) VALUES
+(1, 'IT'), (2, 'CSE'), (3, 'ECE'), (4, 'Mechanical');
+
+INSERT INTO Student (StudentID, StudentName, DeptID, Marks) VALUES
+(101, 'Amit', 1, 85),
+(102, 'Priya', 1, 92),
+(103, 'Rahul', 1, 70),
+(104, 'Sneha', 2, 88),
+(105, 'Vikas', 2, 60),
+(106, 'Neha', 3, 95),
+(107, 'Arjun', 3, 78),
+(108, 'Kiran', 4, 45);
+
+SELECT * FROM Department;
+SELECT * FROM Student;
+Q: Find students scoring above average marks?
+
+SQL
+SELECT * FROM Student
+WHERE Marks > (SELECT AVG(Marks) FROM Student);
+Q: Find students in 'IT' department using subquery?
+
+SQL
+SELECT * FROM Student
+WHERE DeptID = (SELECT DeptID FROM Department WHERE DeptName = 'IT');
+Q: Find student(s) with the highest marks?
+
+SQL
+SELECT * FROM Student
+WHERE Marks = (SELECT MAX(Marks) FROM Student);
+Q: Students scoring more than ANY student in IT?
+
+SQL
+SELECT * FROM Student
+WHERE Marks > ANY (
+  SELECT S.Marks FROM Student S
+  JOIN Department D ON S.DeptID = D.DeptID
+  WHERE D.DeptName = 'IT'
+);
+Q: Students scoring more than ALL students in IT?
+
+SQL
+SELECT * FROM Student
+WHERE Marks > ALL (
+  SELECT S.Marks FROM Student S
+  JOIN Department D ON S.DeptID = D.DeptID
+  WHERE D.DeptName = 'IT'
+);
+Q: Students whose department exists using EXISTS?
+
+SQL
+SELECT * FROM Student S
+WHERE EXISTS (
+  SELECT 1 FROM Department D
+  WHERE D.DeptID = S.DeptID
+);

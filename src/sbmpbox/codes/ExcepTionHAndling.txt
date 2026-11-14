@@ -1,0 +1,94 @@
+Q: Create BankDB, Accounts table with CHECK constraint & insert records?
+
+SQL
+CREATE DATABASE BankDB;
+USE BankDB;
+
+CREATE TABLE Accounts (
+  Account_ID INT PRIMARY KEY,
+  Account_Name VARCHAR(50) NOT NULL,
+  Balance DECIMAL(12,2) NOT NULL,
+  CHECK (Balance >= 0)
+) ENGINE = InnoDB;
+
+INSERT INTO Accounts VALUES
+(101, 'Amit', 20000.00),
+(102, 'Priya', 10000.00),
+(103, 'Rahul', 5000.00);
+
+SELECT * FROM Accounts;
+Q: Create stored procedure for fund transfer with transaction & exception handling?
+
+SQL
+DELIMITER //
+CREATE PROCEDURE TransferFunds(
+  IN p_FromAccount INT,
+  IN p_ToAccount INT,
+  IN p_Amount DECIMAL(12,2)
+)
+BEGIN
+  DECLARE v_FromBalance DECIMAL(12,2);
+  DECLARE v_AccountCount INT DEFAULT 0;
+
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    RESIGNAL;
+  END;
+
+  START TRANSACTION;
+
+  -- Validation: positive amount
+  IF p_Amount IS NULL OR p_Amount <= 0 THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Transfer amount must be positive';
+  END IF;
+
+  -- Validation: distinct accounts
+  IF p_FromAccount = p_ToAccount THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Source and destination must differ';
+  END IF;
+
+  -- Validation: both accounts exist
+  SELECT COUNT(*) INTO v_AccountCount
+  FROM Accounts WHERE Account_ID IN (p_FromAccount, p_ToAccount);
+  IF v_AccountCount <> 2 THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'One or both accounts do not exist';
+  END IF;
+
+  -- Check and lock balance
+  SELECT Balance INTO v_FromBalance
+  FROM Accounts WHERE Account_ID = p_FromAccount FOR UPDATE;
+
+  IF v_FromBalance < p_Amount THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Insufficient balance';
+  END IF;
+
+  -- Update balances
+  UPDATE Accounts SET Balance = Balance - p_Amount WHERE Account_ID = p_FromAccount;
+  UPDATE Accounts SET Balance = Balance + p_Amount WHERE Account_ID = p_ToAccount;
+
+  COMMIT;
+END //
+DELIMITER ;
+Q: Execute successful transfer and verify?
+
+SQL
+CALL TransferFunds(101, 102, 5000.00);
+SELECT * FROM Accounts;
+Q: Test exception handling (fail cases)?
+
+SQL
+-- Insufficient balance
+CALL TransferFunds(103, 102, 10000.00);
+
+-- Invalid account ID
+CALL TransferFunds(101, 999, 1000.00);
+
+-- Negative/Zero amount
+CALL TransferFunds(101, 102, -500.00);
+
+-- Same source & target account
+CALL TransferFunds(101, 101, 1000.00);
+
+-- Verify final balances remained unchanged after errors
+SELECT Account_ID, Account_Name, Balance FROM Accounts ORDER BY Account_ID;

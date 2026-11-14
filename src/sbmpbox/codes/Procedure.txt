@@ -1,0 +1,74 @@
+Q: Create DB & Student table?
+
+SQL
+CREATE DATABASE CollegeDB;
+USE CollegeDB;
+
+CREATE TABLE Student (
+  Student_ID INT PRIMARY KEY,
+  Student_Name VARCHAR(50) NOT NULL,
+  Department VARCHAR(30),
+  Marks INT
+);
+Q: Create procedure to insert student details & execute?
+
+SQL
+DELIMITER //
+CREATE PROCEDURE InsertStudent(
+  IN p_id INT,
+  IN p_name VARCHAR(50),
+  IN p_department VARCHAR(30),
+  IN p_marks INT
+)
+BEGIN
+  INSERT INTO Student (Student_ID, Student_Name, Department, Marks)
+  VALUES (p_id, p_name, p_department, p_marks);
+END //
+DELIMITER ;
+
+-- Execute
+CALL InsertStudent(101, 'Amit', 'Computer', 85);
+CALL InsertStudent(102, 'Priya', 'IT', 90);
+CALL InsertStudent(103, 'Rahul', 'Computer', 76);
+Q: Create procedure to display all students & execute?
+
+SQL
+DELIMITER //
+CREATE PROCEDURE DisplayStudents()
+BEGIN
+  SELECT * FROM Student;
+END //
+DELIMITER ;
+
+-- Execute
+CALL DisplayStudents();
+Q: Create procedure to get student by ID (IN param) & execute?
+
+SQL
+DELIMITER //
+CREATE PROCEDURE GetStudentByID(IN p_id INT)
+BEGIN
+  SELECT * FROM Student WHERE Student_ID = p_id;
+END //
+DELIMITER ;
+
+-- Execute
+CALL GetStudentByID(102);
+Q: Create procedure to get student marks using OUT parameter & execute?
+
+SQL
+DELIMITER //
+CREATE PROCEDURE GetStudentMarks(
+  IN p_id INT,
+  OUT p_marks INT
+)
+BEGIN
+  SELECT Marks INTO p_marks
+  FROM Student
+  WHERE Student_ID = p_id;
+END //
+DELIMITER ;
+
+-- Execute & view result
+CALL GetStudentMarks(101, @marks);
+SELECT @marks AS Student_Marks;

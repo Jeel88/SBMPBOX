@@ -1,0 +1,68 @@
+Q: Create DB & tables with self-referencing foreign key?
+
+SQL
+CREATE DATABASE CollegeDB;
+USE CollegeDB;
+
+CREATE TABLE Department (
+  Dept_ID INT PRIMARY KEY,
+  Dept_Name VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE Student (
+  Student_ID INT PRIMARY KEY,
+  Student_Name VARCHAR(50) NOT NULL,
+  Dept_ID INT,
+  Marks DECIMAL(5,2),
+  Mentor_ID INT,
+  FOREIGN KEY (Dept_ID) REFERENCES Department(Dept_ID),
+  FOREIGN KEY (Mentor_ID) REFERENCES Student(Student_ID)
+);
+Q: Insert sample data & verify?
+
+SQL
+INSERT INTO Department VALUES
+(1, 'IT'),
+(2, 'CSE'),
+(3, 'ENTC'),
+(4, 'Mechanical');
+
+INSERT INTO Student VALUES
+(101, 'Amit', 1, 85, NULL),
+(102, 'Priya', 2, 92, 101),
+(103, 'Rahul', 1, 70, 101),
+(104, 'Neha', 3, 65, 102),
+(105, 'Sneha', 2, 88, 102);
+
+SELECT * FROM Department;
+SELECT * FROM Student;
+Q: Display students with departments using INNER JOIN?
+
+SQL
+SELECT S.Student_ID, S.Student_Name, D.Dept_Name
+FROM Student S
+INNER JOIN Department D ON S.Dept_ID = D.Dept_ID;
+Q: Display all students whether assigned to a department or not (LEFT JOIN)?
+
+SQL
+SELECT S.Student_Name, D.Dept_Name
+FROM Student S
+LEFT JOIN Department D ON S.Dept_ID = D.Dept_ID;
+Q: Display all departments even if they have no students (RIGHT JOIN)?
+
+SQL
+SELECT S.Student_Name, D.Dept_Name
+FROM Student S
+RIGHT JOIN Department D ON S.Dept_ID = D.Dept_ID;
+Q: Display Cartesian product of students & departments (CROSS JOIN)?
+
+SQL
+SELECT S.Student_Name, D.Dept_Name
+FROM Student S
+CROSS JOIN Department D;
+Q: Display each student with their mentor using SELF JOIN?
+
+SQL
+SELECT S.Student_Name AS Student, M.Student_Name AS Mentor
+FROM Student S
+LEFT JOIN Student M ON S.Mentor_ID = M.Student_ID;

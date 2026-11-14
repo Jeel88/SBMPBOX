@@ -1,0 +1,52 @@
+Q: Create & use database?
+
+SQL
+CREATE DATABASE college;
+USE college;
+SHOW DATABASES;
+Q: Create Student table & view schema?
+
+SQL
+CREATE TABLE Student (
+  Roll_No INT PRIMARY KEY,
+  Name VARCHAR(50),
+  Age INT,
+  City VARCHAR(30)
+);
+DESC Student;
+Q: Insert 5 students & display?
+
+SQL
+INSERT INTO Student (Roll_No, Name, Age, City) VALUES
+(101, 'Rahul', 20, 'Mumbai'),
+(102, 'Priya', 21, 'Pune'),
+(103, 'Amit', 19, 'Nashik'),
+(104, 'Sneha', 20, 'Thane'),
+(105, 'Rohit', 22, 'Nagpur');
+SELECT * FROM Student;
+Q: Delete student by Roll_No?
+
+SQL
+DELETE FROM Student WHERE Roll_No = 105;
+DELETE FROM Student WHERE Roll_No = 102;
+SELECT * FROM Student;
+Q: Add column, modify column & rename table?
+
+SQL
+ALTER TABLE Student ADD Branch VARCHAR(30);
+ALTER TABLE Student MODIFY Name VARCHAR(100);
+RENAME TABLE Student TO Student_Details;
+Q: Create & drop temp table?
+
+SQL
+CREATE TABLE Temp_Student (Student_ID INT, Name VARCHAR(50));
+DROP TABLE Temp_Student;
+SHOW TABLES;
+Q: Create user, grant & revoke SELECT?
+
+SQL
+CREATE USER 'student_user'@'localhost' IDENTIFIED BY 'Student@123';
+GRANT SELECT ON college.* TO 'student_user'@'localhost';
+SHOW GRANTS FOR 'student_user'@'localhost';
+REVOKE SELECT ON college.* FROM 'student_user'@'localhost';
+SHOW GRANTS FOR 'student_user'@'localhost';
