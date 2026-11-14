@@ -5,10 +5,6 @@ from pathlib import Path
 
 def main():
 
-    print("\n========================")
-    print("       SBMPBOX")
-    print("========================")
-
     codes_folder = resources.files("sbmpbox").joinpath("codes")
 
     files = sorted(
@@ -20,7 +16,7 @@ def main():
         print("\nNo code files available!")
         return
 
-    print("\nAvailable Python Codes:\n")
+    print("\nAvailable Codes:\n")
 
     for index, file in enumerate(files, start=1):
         print(f"{index}. {file.name}")
