@@ -14,5 +14,6 @@ src/sbmpbox/codes/ExcepTionHAndling.txt
 src/sbmpbox/codes/JOINS.txt
 src/sbmpbox/codes/NestedQueryKEYS.txt
 src/sbmpbox/codes/OS_ALL_In_ONE.txt
+src/sbmpbox/codes/OS_In_C.txt
 src/sbmpbox/codes/Procedure.txt
 src/sbmpbox/codes/Trigger.txt

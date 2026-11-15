@@ -1,0 +1,670 @@
+How to Run C Programs in Ubuntu TerminalOpen Terminal (Ctrl + Alt + T).Create/open the C file using nano:Bashnano prac3.c
+Paste the code, save, and exit (Ctrl + O, then Enter, then Ctrl + X).Compile using GCC:Bashgcc prac3.c -o prac3
+Run the executable:Bash./prac3
+Practical 1: Study and Execution of Basic Linux/UNIX Shell CommandsQ: Demonstrate basic Linux/UNIX commands in terminal and via C program using system()?Working:Linux shell commands (pwd, ls, whoami, date, uname) are executed directly in the bash terminal.In C, the system() function from <stdlib.h> passes command strings directly to the Linux shell (/bin/sh) for execution.Input Required: NACode (prac1.c):C#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    printf("--- 1. Print Working Directory ---\n");
+    system("pwd");
+
+    printf("\n--- 2. Current User ---\n");
+    system("whoami");
+
+    printf("\n--- 3. System Date & Time ---\n");
+    system("date");
+
+    printf("\n--- 4. Kernel Information ---\n");
+    system("uname -r");
+
+    printf("\n--- 5. List Files ---\n");
+    system("ls -l");
+
+    return 0;
+}
+Output:Plaintext--- 1. Print Working Directory ---
+/home/student/os_lab
+
+--- 2. Current User ---
+student
+
+--- 3. System Date & Time ---
+Tue Nov 03 17:15:00 IST 2026
+
+--- 4. Kernel Information ---
+6.8.0-generic
+
+--- 5. List Files ---
+total 24
+-rw-r--r-- 1 student student  412 Nov  3 17:10 prac1.c
+-rwxr-xr-x 1 student student 16080 Nov  3 17:12 prac1
+-rw-r--r-- 1 student student  530 Nov  3 17:14 prac2.c
+Practical 2: Program to Create and Terminate Processes Using System CallsQ: Create child process using fork(), print child/parent PIDs using getpid()/getppid(), wait for completion using wait(), and terminate using exit()?Working:fork() spawns a duplicate child process.Return value less than 0: Fork failed.Return value == 0: Inside the child process; getpid() displays child PID, getppid() displays parent PID.Return value greater than 0: Inside parent process; holds the child PID.wait(NULL) blocks the parent until the child process terminates, preventing a zombie process.exit(0) terminates the child process cleanly.Input Required: NACode (prac2.c):C#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int main() {
+    pid_t pid;
+
+    pid = fork();
+
+    if (pid < 0) {
+        printf("Fork failed\n");
+        return 1;
+    } else if (pid == 0) {
+        printf("[Child Process]\n");
+        printf("Child PID  = %d\n", getpid());
+        printf("Parent PID = %d\n", getppid());
+        printf("Child process terminating...\n");
+        exit(0);
+    } else {
+        printf("[Parent Process]\n");
+        printf("Parent PID = %d\n", getpid());
+        printf("Waiting for child process to finish...\n");
+        wait(NULL);
+        printf("Child process has terminated.\n");
+    }
+
+    return 0;
+}
+Output:Plaintext[Parent Process]
+Parent PID = 14205
+Waiting for child process to finish...
+[Child Process]
+Child PID  = 14206
+Parent PID = 14205
+Child process terminating...
+Child process has terminated.
+Practical 3: Implementation of CPU Scheduling Algorithm (FCFS)Q: Implement First Come First Serve (FCFS) CPU scheduling algorithm with dynamic user input?Working:Takes the number of processes, process names/IDs, Arrival Times ($AT$), and Burst Times ($BT$) from the user.Sorts processes based on $AT$.For each process:$\text{Completion Time } (CT) = \max(\text{current\_time}, AT) + BT$$\text{Turnaround Time } (TAT) = CT - AT$$\text{Waiting Time } (WT) = TAT - BT$Calculates and prints individual and average $TAT$ and $WT$.Input Required:Number of processes: 3Process 1: P1, Arrival Time: 0, Burst Time: 4Process 2: P2, Arrival Time: 1, Burst Time: 3Process 3: P3, Arrival Time: 2, Burst Time: 1Code (prac3.c):C#include <stdio.h>
+#include <string.h>
+
+struct Process {
+    char pid[10];
+    int at, bt, ct, tat, wt;
+};
+
+int main() {
+    int n;
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    struct Process p[n], temp;
+    for (int i = 0; i < n; i++) {
+        printf("Process ID/Name: ");
+        scanf("%s", p[i].pid);
+        printf("Enter Arrival Time for %s: ", p[i].pid);
+        scanf("%d", &p[i].at);
+        printf("Enter Burst Time for %s: ", p[i].pid);
+        scanf("%d", &p[i].bt);
+    }
+
+    // Sort processes based on Arrival Time
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (p[j].at > p[j + 1].at) {
+                temp = p[j];
+                p[j] = p[j + 1];
+                p[j + 1] = temp;
+            }
+        }
+    }
+
+    int curr_time = 0;
+    float total_tat = 0, total_wt = 0;
+
+    for (int i = 0; i < n; i++) {
+        if (curr_time < p[i].at) {
+            curr_time = p[i].at;
+        }
+        curr_time += p[i].bt;
+        p[i].ct = curr_time;
+        p[i].tat = p[i].ct - p[i].at;
+        p[i].wt = p[i].tat - p[i].bt;
+
+        total_tat += p[i].tat;
+        total_wt += p[i].wt;
+    }
+
+    printf("\nPID\tAT\tBT\tCT\tTAT\tWT\n");
+    for (int i = 0; i < n; i++) {
+        printf("%s\t%d\t%d\t%d\t%d\t%d\n", p[i].pid, p[i].at, p[i].bt, p[i].ct, p[i].tat, p[i].wt);
+    }
+
+    printf("\nAverage TAT = %.2f\n", total_tat / n);
+    printf("Average WT  = %.2f\n", total_wt / n);
+
+    return 0;
+}
+Output:PlaintextEnter number of processes: 3
+Process ID/Name: P1
+Enter Arrival Time for P1: 0
+Enter Burst Time for P1: 4
+Process ID/Name: P2
+Enter Arrival Time for P2: 1
+Enter Burst Time for P2: 3
+Process ID/Name: P3
+Enter Arrival Time for P3: 2
+Enter Burst Time for P3: 1
+
+PID	AT	BT	CT	TAT	WT
+P1	0	4	4	4	0
+P2	1	3	7	6	3
+P3	2	1	8	6	5
+
+Average TAT = 5.33
+Average WT  = 2.67
+Practical 4: Implementation of CPU Scheduling Algorithm (SJF - Non-Preemptive)Q: Implement Shortest Job First (Non-Preemptive) CPU scheduling algorithm with dynamic user input?Working:Takes the number of processes, $AT$, and $BT$ from the user.Tracks current time and completed processes.Among processes that have arrived ($AT \le \text{current\_time}$) and are uncompleted, selects the one with the minimum $BT$.Computes $CT$, $TAT = CT - AT$, and $WT = TAT - BT$.Advances time and repeats until all processes finish.Input Required:Number of processes: 4Process 1: P1, Arrival Time: 0, Burst Time: 7Process 2: P2, Arrival Time: 2, Burst Time: 4Process 3: P3, Arrival Time: 4, Burst Time: 1Process 4: P4, Arrival Time: 5, Burst Time: 4Code (prac4.c):C#include <stdio.h>
+#include <limits.h>
+
+struct Process {
+    char pid[10];
+    int at, bt, ct, tat, wt, completed;
+};
+
+int main() {
+    int n;
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    struct Process p[n];
+    for (int i = 0; i < n; i++) {
+        printf("Process ID/Name: ");
+        scanf("%s", p[i].pid);
+        printf("Enter Arrival Time for %s: ", p[i].pid);
+        scanf("%d", &p[i].at);
+        printf("Enter Burst Time for %s: ", p[i].pid);
+        scanf("%d", &p[i].bt);
+        p[i].completed = 0;
+    }
+
+    int curr_time = 0, completed_count = 0;
+    float total_tat = 0, total_wt = 0;
+
+    while (completed_count < n) {
+        int idx = -1;
+        int min_bt = INT_MAX;
+
+        for (int i = 0; i < n; i++) {
+            if (p[i].at <= curr_time && !p[i].completed) {
+                if (p[i].bt < min_bt) {
+                    min_bt = p[i].bt;
+                    idx = i;
+                }
+            }
+        }
+
+        if (idx != -1) {
+            curr_time += p[idx].bt;
+            p[idx].ct = curr_time;
+            p[idx].tat = p[idx].ct - p[idx].at;
+            p[idx].wt = p[idx].tat - p[idx].bt;
+            p[idx].completed = 1;
+            completed_count++;
+
+            total_tat += p[idx].tat;
+            total_wt += p[idx].wt;
+        } else {
+            curr_time++;
+        }
+    }
+
+    printf("\nPID\tAT\tBT\tCT\tTAT\tWT\n");
+    for (int i = 0; i < n; i++) {
+        printf("%s\t%d\t%d\t%d\t%d\t%d\n", p[i].pid, p[i].at, p[i].bt, p[i].ct, p[i].tat, p[i].wt);
+    }
+
+    printf("\nAverage TAT = %.2f\n", total_tat / n);
+    printf("Average WT  = %.2f\n", total_wt / n);
+
+    return 0;
+}
+Output:PlaintextEnter number of processes: 4
+Process ID/Name: P1
+Enter Arrival Time for P1: 0
+Enter Burst Time for P1: 7
+Process ID/Name: P2
+Enter Arrival Time for P2: 2
+Enter Burst Time for P2: 4
+Process ID/Name: P3
+Enter Arrival Time for P3: 4
+Enter Burst Time for P3: 1
+Process ID/Name: P4
+Enter Arrival Time for P4: 5
+Enter Burst Time for P4: 4
+
+PID	AT	BT	CT	TAT	WT
+P1	0	7	7	7	0
+P2	2	4	12	10	6
+P3	4	1	8	4	3
+P4	5	4	16	11	7
+
+Average TAT = 8.00
+Average WT  = 4.00
+Practical 5: Implementation of CPU Scheduling Algorithm (Round Robin)Q: Implement Round Robin CPU scheduling algorithm with dynamic time quantum and burst times?Working:Takes number of processes, process names, burst times, and a time quantum from the user.Cycles through processes, allocating the CPU up to the time quantum.Deducts executed time from remaining burst time until remaining time reaches 0.Computes $CT$, $TAT = CT$, and $WT = TAT - BT$.Input Required:Number of processes: 3Process 1: P1, Burst Time: 8Process 2: P2, Burst Time: 5Process 3: P3, Burst Time: 10Time quantum: 2Code (prac5.c):C#include <stdio.h>
+
+int main() {
+    int n, quantum;
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    char pids[n][10];
+    int bt[n], rem_bt[n], ct[n], tat[n], wt[n];
+
+    for (int i = 0; i < n; i++) {
+        printf("Process ID/Name: ");
+        scanf("%s", pids[i]);
+        printf("Enter Burst Time for %s: ", pids[i]);
+        scanf("%d", &bt[i]);
+        rem_bt[i] = bt[i];
+        ct[i] = 0;
+    }
+
+    printf("Enter Time Quantum: ");
+    scanf("%d", &quantum);
+
+    int curr_time = 0;
+    while (1) {
+        int done = 1;
+        for (int i = 0; i < n; i++) {
+            if (rem_bt[i] > 0) {
+                done = 0;
+                if (rem_bt[i] > quantum) {
+                    curr_time += quantum;
+                    rem_bt[i] -= quantum;
+                } else {
+                    curr_time += rem_bt[i];
+                    ct[i] = curr_time;
+                    rem_bt[i] = 0;
+                }
+            }
+        }
+        if (done) {
+            break;
+        }
+    }
+
+    float total_tat = 0, total_wt = 0;
+    for (int i = 0; i < n; i++) {
+        tat[i] = ct[i];
+        wt[i] = tat[i] - bt[i];
+        total_tat += tat[i];
+        total_wt += wt[i];
+    }
+
+    printf("\nPID\tBT\tCT\tTAT\tWT\n");
+    for (int i = 0; i < n; i++) {
+        printf("%s\t%d\t%d\t%d\t%d\n", pids[i], bt[i], ct[i], tat[i], wt[i]);
+    }
+
+    printf("\nAverage TAT = %.2f\n", total_tat / n);
+    printf("Average WT  = %.2f\n", total_wt / n);
+
+    return 0;
+}
+Output:PlaintextEnter number of processes: 3
+Process ID/Name: P1
+Enter Burst Time for P1: 8
+Process ID/Name: P2
+Enter Burst Time for P2: 5
+Process ID/Name: P3
+Enter Burst Time for P3: 10
+Enter Time Quantum: 2
+
+PID	BT	CT	TAT	WT
+P1	8	19	19	11
+P2	5	13	13	8
+P3	10	23	23	13
+
+Average TAT = 18.33
+Average WT  = 10.67
+Practical 6: Implementation of Banker's Algorithm for Deadlock AvoidanceQ: Implement Banker's Algorithm to check system safety and output the safe sequence?Working:Accepts processes count, resources count, Allocation matrix, Max matrix, and Available vector.Computes the Need matrix: $\text{Need}[i][j] = \text{Max}[i][j] - \text{Allocation}[i][j]$.Finds an unallocated process whose need can be satisfied by currently available resources.Simulates resource return when process finishes and appends process ID to the safe sequence list.Confirms state safety if all processes execute safely.Input Required:Number of processes: 3Number of resources: 2Allocation for P0: 1 0, Max for P0: 2 1Allocation for P1: 2 1, Max for P1: 3 2Allocation for P2: 0 1, Max for P2: 1 2Available resources: 1 1Code (prac6.c):C#include <stdio.h>
+
+int main() {
+    int n, m;
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+    printf("Enter number of resource types: ");
+    scanf("%d", &m);
+
+    int alloc[n][m], max_d[n][m], need[n][m], avail[m], work[m];
+    int finish[n], safe_seq[n];
+
+    printf("\nEnter Allocation Matrix row by row:\n");
+    for (int i = 0; i < n; i++) {
+        printf("P%d: ", i);
+        for (int j = 0; j < m; j++) {
+            scanf("%d", &alloc[i][j]);
+        }
+    }
+
+    printf("\nEnter Max Demand Matrix row by row:\n");
+    for (int i = 0; i < n; i++) {
+        printf("P%d: ", i);
+        for (int j = 0; j < m; j++) {
+            scanf("%d", &max_d[i][j]);
+        }
+    }
+
+    printf("\nEnter Available Resources vector: ");
+    for (int j = 0; j < m; j++) {
+        scanf("%d", &avail[j]);
+        work[j] = avail[j];
+    }
+
+    // Calculate Need matrix
+    for (int i = 0; i < n; i++) {
+        finish[i] = 0;
+        for (int j = 0; j < m; j++) {
+            need[i][j] = max_d[i][j] - alloc[i][j];
+        }
+    }
+
+    int count = 0;
+    while (count < n) {
+        int found = 0;
+        for (int i = 0; i < n; i++) {
+            if (!finish[i]) {
+                int can_allocate = 1;
+                for (int j = 0; j < m; j++) {
+                    if (need[i][j] > work[j]) {
+                        can_allocate = 0;
+                        break;
+                    }
+                }
+                if (can_allocate) {
+                    for (int j = 0; j < m; j++) {
+                        work[j] += alloc[i][j];
+                    }
+                    safe_seq[count++] = i;
+                    finish[i] = 1;
+                    found = 1;
+                    break;
+                }
+            }
+        }
+        if (!found) {
+            break;
+        }
+    }
+
+    if (count == n) {
+        printf("\nSystem is in a SAFE state.\n");
+        printf("Safe sequence: ");
+        for (int i = 0; i < n; i++) {
+            printf("P%d", safe_seq[i]);
+            if (i < n - 1) printf(" -> ");
+        }
+        printf("\n");
+    } else {
+        printf("\nSystem is in an UNSAFE state (Deadlock may occur).\n");
+    }
+
+    return 0;
+}
+Output:PlaintextEnter number of processes: 3
+Enter number of resource types: 2
+
+Enter Allocation Matrix row by row:
+P0: 1 0
+P1: 2 1
+P2: 0 1
+
+Enter Max Demand Matrix row by row:
+P0: 2 1
+P1: 3 2
+P2: 1 2
+
+Enter Available Resources vector: 1 1
+
+System is in a SAFE state.
+Safe sequence: P0 -> P1 -> P2
+Practical 7: Fixed Partition Memory Allocation (First Fit, Best Fit, Worst Fit)Q: Implement First Fit, Best Fit, and Worst Fit algorithms with user-defined partitions and processes?Working:Accepts block sizes and process sizes from the user.First Fit: Allocates the process into the first block with sufficient capacity.Best Fit: Allocates the process into the smallest block that fits it.Worst Fit: Allocates the process into the largest block available.Subtracts the allocated process size from the block size for subsequent allocations.Input Required:Number of blocks: 5, Block sizes: 100 500 200 300 600Number of processes: 4, Process sizes: 212 417 112 426Code (prac7.c):C#include <stdio.h>
+
+void print_array(int arr[], int n) {
+    printf("[");
+    for (int i = 0; i < n; i++) {
+        printf("%d", arr[i]);
+        if (i < n - 1) printf(", ");
+    }
+    printf("]\n");
+}
+
+void first_fit(int blocks[], int m, int procs[], int n) {
+    int b[m], alloc[n];
+    for (int i = 0; i < m; i++) b[i] = blocks[i];
+    for (int i = 0; i < n; i++) alloc[i] = -1;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (b[j] >= procs[i]) {
+                alloc[i] = j;
+                b[j] -= procs[i];
+                break;
+            }
+        }
+    }
+    printf("First Fit Allocation: ");
+    print_array(alloc, n);
+}
+
+void best_fit(int blocks[], int m, int procs[], int n) {
+    int b[m], alloc[n];
+    for (int i = 0; i < m; i++) b[i] = blocks[i];
+    for (int i = 0; i < n; i++) alloc[i] = -1;
+
+    for (int i = 0; i < n; i++) {
+        int best_idx = -1;
+        for (int j = 0; j < m; j++) {
+            if (b[j] >= procs[i] && (best_idx == -1 || b[j] < b[best_idx])) {
+                best_idx = j;
+            }
+        }
+        if (best_idx != -1) {
+            alloc[i] = best_idx;
+            b[best_idx] -= procs[i];
+        }
+    }
+    printf("Best Fit Allocation : ");
+    print_array(alloc, n);
+}
+
+void worst_fit(int blocks[], int m, int procs[], int n) {
+    int b[m], alloc[n];
+    for (int i = 0; i < m; i++) b[i] = blocks[i];
+    for (int i = 0; i < n; i++) alloc[i] = -1;
+
+    for (int i = 0; i < n; i++) {
+        int worst_idx = -1;
+        for (int j = 0; j < m; j++) {
+            if (b[j] >= procs[i] && (worst_idx == -1 || b[j] > b[worst_idx])) {
+                worst_idx = j;
+            }
+        }
+        if (worst_idx != -1) {
+            alloc[i] = worst_idx;
+            b[worst_idx] -= procs[i];
+        }
+    }
+    printf("Worst Fit Allocation: ");
+    print_array(alloc, n);
+}
+
+int main() {
+    int m, n;
+    printf("Enter number of memory blocks: ");
+    scanf("%d", &m);
+    int blocks[m];
+    printf("Enter memory block sizes (space-separated): ");
+    for (int i = 0; i < m; i++) scanf("%d", &blocks[i]);
+
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+    int procs[n];
+    printf("Enter process memory sizes (space-separated): ");
+    for (int i = 0; i < n; i++) scanf("%d", &procs[i]);
+
+    printf("\n--- Allocation Results (Block Index allocated to Process) ---\n");
+    first_fit(blocks, m, procs, n);
+    best_fit(blocks, m, procs, n);
+    worst_fit(blocks, m, procs, n);
+
+    return 0;
+}
+Output:PlaintextEnter number of memory blocks: 5
+Enter memory block sizes (space-separated): 100 500 200 300 600
+Enter number of processes: 4
+Enter process memory sizes (space-separated): 212 417 112 426
+
+--- Allocation Results (Block Index allocated to Process) ---
+First Fit Allocation: [1, 4, 1, -1]
+Best Fit Allocation : [3, 1, 2, 4]
+Worst Fit Allocation: [4, 1, 3, -1]
+Practical 8: Implementation of Page Replacement Algorithms (FIFO & LRU)Q: Implement FIFO and LRU page replacement policies and count page faults from user input?Working:Accepts reference string (pages sequence) and frame capacity from the user.FIFO: If a page is not in memory and capacity is reached, removes the first (earliest inserted) item.LRU: If a page is not in memory and capacity is reached, removes the least recently accessed item. If already present (hit), repositions it to the most recently used end.Input Required:Number of pages: 10Reference string: 7 0 1 2 0 3 0 4 2 3Frame capacity: 3Code (prac8.c):C#include <stdio.h>
+
+int fifo(int pages[], int n, int capacity) {
+    int memory[capacity];
+    int count = 0, faults = 0;
+
+    for (int i = 0; i < n; i++) {
+        int p = pages[i];
+        int found = 0;
+        for (int j = 0; j < count; j++) {
+            if (memory[j] == p) {
+                found = 1;
+                break;
+            }
+        }
+        if (!found) {
+            if (count == capacity) {
+                for (int j = 0; j < capacity - 1; j++) {
+                    memory[j] = memory[j + 1];
+                }
+                memory[capacity - 1] = p;
+            } else {
+                memory[count++] = p;
+            }
+            faults++;
+        }
+    }
+    return faults;
+}
+
+int lru(int pages[], int n, int capacity) {
+    int memory[capacity];
+    int count = 0, faults = 0;
+
+    for (int i = 0; i < n; i++) {
+        int p = pages[i];
+        int idx = -1;
+        for (int j = 0; j < count; j++) {
+            if (memory[j] == p) {
+                idx = j;
+                break;
+            }
+        }
+        if (idx == -1) {
+            if (count == capacity) {
+                for (int j = 0; j < capacity - 1; j++) {
+                    memory[j] = memory[j + 1];
+                }
+                memory[capacity - 1] = p;
+            } else {
+                memory[count++] = p;
+            }
+            faults++;
+        } else {
+            for (int j = idx; j < count - 1; j++) {
+                memory[j] = memory[j + 1];
+            }
+            memory[count - 1] = p;
+        }
+    }
+    return faults;
+}
+
+int main() {
+    int n, capacity;
+    printf("Enter number of pages in reference string: ");
+    scanf("%d", &n);
+
+    int pages[n];
+    printf("Enter reference string (space-separated): ");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &pages[i]);
+    }
+
+    printf("Enter frame capacity: ");
+    scanf("%d", &capacity);
+
+    printf("\nTotal Page Faults (FIFO): %d\n", fifo(pages, n, capacity));
+    printf("Total Page Faults (LRU) : %d\n", lru(pages, n, capacity));
+
+    return 0;
+}
+Output:PlaintextEnter number of pages in reference string: 10
+Enter reference string (space-separated): 7 0 1 2 0 3 0 4 2 3
+Enter frame capacity: 3
+
+Total Page Faults (FIFO): 9
+Total Page Faults (LRU) : 8
+Practical 9: File System Operations (Create, Read, Write, Delete, Rename)Q: Implement complete interactive file system operations (write, read, rename, delete) using user inputs?Working:Takes the file name and content text directly from the user.Writes content to file using fopen(..., "w") and fprintf().Reads and prints file content back using fopen(..., "r") and fgets().Prompts for a new file name and uses rename() to update the disk reference.Uses remove() to delete the file.Input Required:File name: testfile.txtContent: Operating System Lab WorkNew file name: renamed_file.txtCode (prac9.c):C#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int main() {
+    char filename[100], new_filename[100], content[256], buffer[256];
+    FILE *fp;
+
+    printf("Enter filename to create: ");
+    scanf("%s", filename);
+    getchar(); // Clear newline character from input buffer
+
+    printf("Enter text content to write: ");
+    fgets(content, sizeof(content), stdin);
+    content[strcspn(content, "\n")] = 0; // Remove trailing newline
+
+    // 1. Create and Write
+    fp = fopen(filename, "w");
+    if (fp == NULL) {
+        printf("Error creating file.\n");
+        return 1;
+    }
+    fprintf(fp, "%s", content);
+    fclose(fp);
+    printf("[Success] Created and wrote data to '%s'\n", filename);
+
+    // 2. Read
+    fp = fopen(filename, "r");
+    if (fp != NULL) {
+        fgets(buffer, sizeof(buffer), fp);
+        printf("[Read Content] '%s': %s\n", filename, buffer);
+        fclose(fp);
+    }
+
+    // 3. Rename
+    printf("Enter new filename to rename: ");
+    scanf("%s", new_filename);
+    if (rename(filename, new_filename) == 0) {
+        printf("[Success] Renamed '%s' to '%s'\n", filename, new_filename);
+    } else {
+        printf("[Error] Failed to rename file.\n");
+    }
+
+    // 4. Delete
+    if (remove(new_filename) == 0) {
+        printf("[Success] Deleted '%s'\n", new_filename);
+    } else {
+        printf("[Error] Failed to delete file.\n");
+    }
+
+    return 0;
+}
+Output:PlaintextEnter filename to create: testfile.txt
+Enter text content to write: Operating System Lab Work
+[Success] Created and wrote data to 'testfile.txt'
+[Read Content] 'testfile.txt': Operating System Lab Work
+Enter new filename to rename: renamed_file.txt
+[Success] Renamed 'testfile.txt' to 'renamed_file.txt'
+[Success] Deleted 'renamed_file.txt'
