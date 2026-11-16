@@ -1,0 +1,1100 @@
+-- =========================================================================
+-- SETUP: Create and select a fresh database for your practicals
+-- =========================================================================
+CREATE DATABASE IF NOT EXISTS ty_it_dbms;
+USE ty_it_dbms;
+
+-- 1. Create a database
+CREATE DATABASE ty_it_dbms;
+
+-- 2. Select it as your active workspace
+USE ty_it_dbms;
+
+-- 3. Now any table you create goes directly inside 'ty_it_dbms'
+CREATE TABLE Student (
+    Roll_No INT PRIMARY KEY,
+    Name VARCHAR(30)
+);
+
+-- =========================================================================
+-- Q1] EER Diagram: Railway Reservation System (Conceptual Schema)
+-- =========================================================================
+/*
+[PASSENGER] (PK: Passenger_ID, Name, Age, Gender, Contact_No)
+     | (1)
+     | books
+     v (N)
+[TICKET] (PK: PNR_No, Booking_Date, Status, Total_Fare, FK: Passenger_ID, FK: Train_No)
+     | (N)
+     | reserved_for
+     v (1)
+[TRAIN] (PK: Train_No, Train_Name, Source, Destination)
+     |
+     +--- (d: Disjoint Specialization) ---> [EXPRESS_TRAIN] (Superfast_Charge)
+     |                                 ---> [PASSENGER_TRAIN] (Halts_Count)
+     | (1)
+     | has
+     v (N)
+[COACH] (PK: Coach_ID, Coach_Type, Total_Seats, FK: Train_No)
+*/
+
+-- =========================================================================
+-- Q2] Employee Table & Operations
+-- =========================================================================
+DROP TABLE IF EXISTS Employee;
+CREATE TABLE Employee (
+    Empno INT,
+    Ename VARCHAR(10),
+    Job VARCHAR(10),
+    Mgr INT,
+    Sal INT
+);
+
+-- Insert 5 records
+INSERT INTO Employee VALUES 
+(101, 'Abhi', 'Manager', 1234, 10000),
+(102, 'Rohith', 'Analyst', 2345, 9000),
+(103, 'David', 'Trainee', 3456, 9000),
+(104, 'Rahul', 'Clerk', 4567, 7000),
+(105, 'Kiran', 'Salesman', 5678, 8000);
+
+-- Add column commission
+ALTER TABLE Employee ADD Commission INT;
+
+-- Update column details of job
+SET SQL_SAFE_UPDATES = 0;
+UPDATE Employee SET Job = 'Sr_Analyst' WHERE Empno = 102;
+
+-- Delete employee whose Empno is 105
+DELETE FROM Employee WHERE Empno = 105;
+
+SELECT * FROM Employee;
+
+-- =========================================================================
+-- Q3] Department Table & Operations
+-- =========================================================================
+DROP TABLE IF EXISTS Department;
+CREATE TABLE Department (
+    Deptno INT,
+    Deptname VARCHAR(10),
+    Location VARCHAR(10)
+);
+
+-- Add column designation
+ALTER TABLE Department ADD Designation VARCHAR(20);
+
+-- Insert values
+INSERT INTO Department VALUES 
+(9, 'IT', 'Mumbai', 'Lead'),
+(10, 'HR', 'Pune', 'Manager'),
+(11, 'Sales', 'Delhi', 'Executive');
+
+-- List records grouped by deptno
+SELECT Deptno, Deptname, Location, Designation 
+FROM Department 
+GROUP BY Deptno, Deptname, Location, Designation;
+
+-- Update record where deptno is 9
+UPDATE Department SET Location = 'Bangalore' WHERE Deptno = 9;
+
+-- Delete any column data from the table (setting Location to NULL for Deptno 10)
+UPDATE Department SET Location = NULL WHERE Deptno = 10;
+
+SELECT * FROM Department;
+
+-- =========================================================================
+-- Q4] DCL, TCL, Constraints & Aggregate
+-- =========================================================================
+-- Create a user & grant permissions
+CREATE USER IF NOT EXISTS 'ty_user'@'localhost' IDENTIFIED BY 'password123';
+GRANT ALL PRIVILEGES ON ty_it_dbms.* TO 'ty_user'@'localhost';
+FLUSH PRIVILEGES;
+
+-- Insert 3 records and use rollback
+START TRANSACTION;
+INSERT INTO Employee (Empno, Ename, Job, Mgr, Sal) VALUES 
+(106, 'Neha', 'Clerk', 1234, 6000),
+(107, 'Amit', 'Analyst', 2345, 8500),
+(108, 'Pooja', 'Trainee', 3456, 5000);
+ROLLBACK;
+
+-- Check result (106, 107, 108 will not exist)
+SELECT * FROM Employee;
+
+-- Add primary key constraint to Employee table
+ALTER TABLE Employee ADD PRIMARY KEY (Empno);
+
+-- Count number of employees
+SELECT COUNT(*) AS Total_Employees FROM Employee;
+
+-- =========================================================================
+-- Q5] Flight Table & Date/Math Functions
+-- =========================================================================
+DROP TABLE IF EXISTS Flight;
+CREATE TABLE Flight (
+    F_id INT PRIMARY KEY,
+    DoT DATE,
+    DoI DATE,
+    Time TIME,
+    Pass_name VARCHAR(30),
+    Source VARCHAR(30),
+    Destination VARCHAR(30),
+    Fare DECIMAL(10,2)
+);
+
+-- Insert 5 values
+INSERT INTO Flight VALUES
+(1, '2026-06-15', '2026-05-01', '10:30:00', 'manish', 'Mumbai', 'Delhi', 5500.00),
+(2, '2026-06-20', '2026-05-05', '14:15:00', 'meera', 'Pune', 'Bangalore', 4200.00),
+(3, '2026-07-01', '2026-05-10', '08:00:00', 'Rohan', 'Chennai', 'Kolkata', 6100.00),
+(4, '2026-07-10', '2026-05-12', '19:45:00', 'Sneha', 'Delhi', 'Goa', 5800.00),
+(5, '2026-07-15', '2026-05-18', '22:10:00', 'mohit', 'Hyderabad', 'Mumbai', 3900.00);
+
+-- Display today's date and time
+SELECT NOW() AS Current_Date_Time;
+
+-- Absolute value of -184
+SELECT ABS(-184) AS Absolute_Value;
+
+-- Select value from dual and find its cube
+SELECT POWER(4, 3) AS Cube_Value FROM DUAL;
+
+-- Display date (DoI) 2 months after Date of Issue
+SELECT F_id, Pass_name, DoI, DATE_ADD(DoI, INTERVAL 2 MONTH) AS After_Two_Months FROM Flight;
+
+-- =========================================================================
+-- Q6] Flight String & Formatting Queries
+-- =========================================================================
+-- Display pass_name beginning with 'm' and replace starting 'm' with 'B'
+SELECT Pass_name, CONCAT('B', SUBSTRING(Pass_name, 2)) AS Replaced_Name 
+FROM Flight 
+WHERE Pass_name LIKE 'm%';
+
+-- Display only 3 characters from the 3rd character of Source
+SELECT Source, SUBSTRING(Source, 3, 3) AS Sub_Source FROM Flight;
+
+-- Display output like "my travel Date is <DoT>"
+SELECT CONCAT('my travel Date is ', DoT) AS Travel_Info FROM Flight;
+
+-- =========================================================================
+-- Q7] Employee Aggregate & Sorting Queries
+-- =========================================================================
+DROP TABLE IF EXISTS Employee;
+CREATE TABLE Employee (
+    E_id INT PRIMARY KEY,
+    E_name VARCHAR(20),
+    Age INT,
+    Salary INT
+);
+
+INSERT INTO Employee VALUES
+(101, 'Anu', 22, 9000),
+(102, 'Shane', 29, 8000),
+(103, 'Rohan', 34, 6000),
+(104, 'Scott', 44, 10000),
+(105, 'Tiger', 35, 8000),
+(106, 'Alex', 27, 7000),
+(107, 'Abhi', 29, 8000);
+
+-- Count number of employee names
+SELECT COUNT(E_name) AS Total_Names FROM Employee;
+
+-- Maximum age
+SELECT MAX(Age) AS Max_Age FROM Employee;
+
+-- Salaries in Ascending Order
+SELECT E_name, Salary FROM Employee ORDER BY Salary ASC;
+
+-- Change salary of Tiger to 4000
+UPDATE Employee SET Salary = 4000 WHERE E_name = 'Tiger';
+SELECT * FROM Employee;
+
+-- =========================================================================
+-- Q8] Employee with DOJ & Department Queries
+-- =========================================================================
+DROP TABLE IF EXISTS Employee;
+CREATE TABLE Employee (
+    Emp_id INT PRIMARY KEY,
+    Ename VARCHAR(20),
+    Salary DECIMAL(10,2),
+    Age INT,
+    DOJ DATE,
+    DEPT VARCHAR(20)
+);
+
+INSERT INTO Employee VALUES
+(1, 'Suraj', 50000, 27, '2012-04-05', 'Finance'),
+(2, 'Bhaviya', 70000, 29, '2013-12-03', 'Finance'),
+(3, 'Saijal', 90000, 30, '2014-06-23', 'Marketing'),
+(4, 'Ronak', 35000, 42, '2011-10-22', 'Marketing'),
+(5, 'Aniket', 60000, 52, '2011-02-20', 'HR');
+
+-- Details of employee with maximum salary across all departments
+SELECT * FROM Employee WHERE Salary = (SELECT MAX(Salary) FROM Employee);
+
+-- Give 10% raise in salary of each employee
+UPDATE Employee SET Salary = Salary * 1.10;
+SELECT * FROM Employee;
+
+-- Employees joined from 05-April-2012 to 23-June-2014
+SELECT * FROM Employee WHERE DOJ BETWEEN '2012-04-05' AND '2014-06-23';
+
+-- Display name of each employee department wise ordered descending
+SELECT DEPT, Ename FROM Employee ORDER BY DEPT DESC, Ename DESC;
+
+-- =========================================================================
+-- Q9] Relational Schema Joins (Employee, EmpDept, EmpSalary)
+-- =========================================================================
+DROP TABLE IF EXISTS EmpSalary;
+DROP TABLE IF EXISTS Employee;
+DROP TABLE IF EXISTS EmpDept;
+
+CREATE TABLE EmpDept (
+    DeptId VARCHAR(10) PRIMARY KEY,
+    DeptName VARCHAR(20),
+    DeptHead INT
+);
+
+CREATE TABLE Employee (
+    EmpId INT PRIMARY KEY,
+    EmpName VARCHAR(20),
+    Department VARCHAR(10),
+    ContactNo VARCHAR(15),
+    EmailId VARCHAR(30),
+    EmpHeadId INT
+);
+
+CREATE TABLE EmpSalary (
+    EmpId INT PRIMARY KEY,
+    Salary INT,
+    IsPermanent VARCHAR(5)
+);
+
+INSERT INTO EmpDept VALUES
+('E-101', 'HR', 105),
+('E-102', 'Development', 101),
+('E-103', 'House Keeping', NULL),
+('E-104', 'sales', 104),
+('E-105', 'purchase', 104);
+
+INSERT INTO Employee VALUES
+(101, 'Isha', 'E-101', '1234567890', 'abc@gmail.com', 105),
+(102, 'Priya', 'E-104', '1234567890', 'abc@gmail.com', 103),
+(103, 'Neha', 'E-101', '1234567890', 'abc@gmail.com', 101),
+(104, 'Rahul', 'E-102', '1234567890', 'abc@gmail.com', 105),
+(105, 'abhishek', 'E-101', '1234567890', 'abc@gmail.com', 102);
+
+INSERT INTO EmpSalary VALUES
+(101, 2000, 'Yes'),
+(102, 10000, 'Yes'),
+(103, 5000, 'No'),
+(104, 1900, 'Yes'),
+(105, 2300, 'yes');
+
+-- 1. Natural Join (Note: Since column names differ [Department vs DeptId], Natural Join acts as Cross Join unless matched)
+SELECT * FROM Employee NATURAL JOIN EmpDept;
+
+-- 2. Right Outer Join between Employee and EmpDept
+SELECT e.EmpId, e.EmpName, d.DeptId, d.DeptName 
+FROM Employee e 
+RIGHT OUTER JOIN EmpDept d ON e.Department = d.DeptId;
+
+-- 3. Inner Join where department id doesn't match (Cartesian pairs with unequal Dept IDs)
+SELECT e.EmpId, e.EmpName, e.Department, d.DeptId, d.DeptName 
+FROM Employee e 
+INNER JOIN EmpDept d ON e.Department <> d.DeptId;
+
+-- =========================================================================
+-- Q10 (Part A)] Nested SubQueries on Q9 Schema
+-- =========================================================================
+-- 1. Department details assigned to employee with EmpId > 103
+SELECT * FROM EmpDept 
+WHERE DeptId IN (SELECT Department FROM Employee WHERE EmpId > 103);
+
+-- 2. Details of Employee who is department head of HR
+SELECT * FROM Employee 
+WHERE EmpId = (SELECT DeptHead FROM EmpDept WHERE DeptName = 'HR');
+
+-- 3. Employee working in 'Development' department and permanent
+SELECT * FROM Employee 
+WHERE Department = (SELECT DeptId FROM EmpDept WHERE DeptName = 'Development')
+  AND EmpId IN (SELECT EmpId FROM EmpSalary WHERE LOWER(IsPermanent) = 'yes');
+
+-- =========================================================================
+-- Q10 (Part B)] EER Diagram Design: Multi-Tier University System
+-- =========================================================================
+/*
+                  [PERSON] (PK: Person_ID, Name, Address, DOB)
+                     |
+                     +--- (o : Overlapping Specialization) ---+
+                     |                                        |
+                     v                                        v
+                 [STUDENT]                                [FACULTY]
+          (Inherited: Person_ID,                   (Inherited: Person_ID,
+           Name, Address, DOB;                      Name, Address, DOB;
+           Attr: Roll_No, CGPA)                     Attr: Fac_ID, Dept, Salary)
+                     |                                        |
+        +--- (d : Disjoint Specialization) ---+               | (1)
+        |                                     |               | advises
+        v                                     v               v (N)
+ [UNDERGRADUATE]                       [POSTGRADUATE]      [STUDENT]
+ (Major, Semester)                  (Thesis_Topic, Advisor)
+
+Relationship: [STUDENT] (M) <--- enrolls_in ---> (N) [COURSE] (PK: Course_ID, Title, Credits)
+*/
+
+-- =========================================================================
+-- Q11] Views & Updatable Views
+-- =========================================================================
+DROP TABLE IF EXISTS Employee;
+CREATE TABLE Employee (
+    Eid INT PRIMARY KEY,
+    ename VARCHAR(30),
+    emobile VARCHAR(15),
+    salary INT,
+    ecountry VARCHAR(20),
+    designation VARCHAR(20)
+);
+
+-- Insert 5 values
+INSERT INTO Employee VALUES
+(1, 'Aarav', '9876543210', 60000, 'India', 'Manager'),
+(2, 'John', '9876543211', 55000, 'USA', 'Developer'),
+(3, 'Priya', '9876543212', 70000, 'India', 'Manager'),
+(4, 'Riya', '9876543213', 45000, 'India', 'Analyst'),
+(5, 'Liam', '9876543214', 50000, 'UK', 'Tester');
+
+-- Create view of table Employee
+CREATE OR REPLACE VIEW Emp_View AS SELECT * FROM Employee;
+
+-- Create India_emp_view
+CREATE OR REPLACE VIEW India_emp_view AS 
+SELECT * FROM Employee WHERE ecountry = 'India';
+
+-- Create Manager_emp_view
+CREATE OR REPLACE VIEW Manager_emp_view AS 
+SELECT * FROM Employee WHERE designation = 'Manager';
+
+-- Update Manager_emp_view and check base Employee table
+UPDATE Manager_emp_view SET emobile = '9999988888' WHERE Eid = 1;
+SELECT * FROM Employee WHERE Eid = 1;
+
+-- =========================================================================
+-- Q12] Triggers on Employee (Prevent Salary Update & Weekend Insert)
+-- =========================================================================
+DELIMITER //
+
+CREATE TRIGGER trg_prevent_salary_update
+BEFORE UPDATE ON Employee
+FOR EACH ROW
+BEGIN
+    IF OLD.salary <> NEW.salary THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Error: Updating the Salary attribute is not allowed!';
+    END IF;
+END //
+
+CREATE TRIGGER trg_prevent_weekend_insert
+BEFORE INSERT ON Employee
+FOR EACH ROW
+BEGIN
+    -- DAYOFWEEK: 1 = Sunday, 7 = Saturday
+    IF DAYOFWEEK(CURDATE()) IN (1, 7) THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Error: Inserting records into Employee on weekends is restricted!';
+    END IF;
+END //
+
+DELIMITER ;
+
+-- =========================================================================
+-- Q13] Triggers on Department (Display System Date & Dmgr Change Message)
+-- =========================================================================
+DROP TABLE IF EXISTS Department;
+CREATE TABLE Department (
+    Did INT PRIMARY KEY,
+    Dname VARCHAR(20),
+    Location VARCHAR(20),
+    Dmgr VARCHAR(30)
+);
+
+INSERT INTO Department VALUES (1, 'IT', 'Mumbai', 'Suresh');
+
+-- Table to capture trigger log messages in MySQL
+DROP TABLE IF EXISTS Dept_Trigger_Log;
+CREATE TABLE Dept_Trigger_Log (Log_Message VARCHAR(255));
+
+DELIMITER //
+
+CREATE TRIGGER trg_dept_location_update
+AFTER UPDATE ON Department
+FOR EACH ROW
+BEGIN
+    IF OLD.Location <> NEW.Location THEN
+        INSERT INTO Dept_Trigger_Log VALUES (CONCAT('Location updated on System Date: ', CURDATE()));
+    END IF;
+END //
+
+CREATE TRIGGER trg_dept_dmgr_update
+AFTER UPDATE ON Department
+FOR EACH ROW
+BEGIN
+    IF OLD.Dmgr <> NEW.Dmgr THEN
+        INSERT INTO Dept_Trigger_Log VALUES (CONCAT('Old Manager ', OLD.Dmgr, ' got updated by new Manager ', NEW.Dmgr));
+    END IF;
+END //
+
+DELIMITER ;
+
+UPDATE Department SET Location = 'Pune', Dmgr = 'Ramesh' WHERE Did = 1;
+SELECT * FROM Dept_Trigger_Log;
+
+-- =========================================================================
+-- Q14] Stored Procedure: Update_Account_Balance (MySQL Equivalent)
+-- =========================================================================
+DROP TABLE IF EXISTS Account;
+CREATE TABLE Account (
+    Acc_No INT PRIMARY KEY,
+    Cust_Name VARCHAR(30),
+    Balance DECIMAL(10,2),
+    Acc_Type VARCHAR(15)
+);
+
+INSERT INTO Account VALUES
+(1001, 'Amit Sharma', 10000.00, 'Savings'),
+(1002, 'Neha Verma', 1500.00, 'Savings');
+
+DELIMITER //
+
+CREATE PROCEDURE Update_Account_Balance(
+    IN p_acc_no INT,
+    IN p_trans_type CHAR(1),
+    IN p_amount DECIMAL(10,2)
+)
+BEGIN
+    DECLARE v_balance DECIMAL(10,2);
+
+    SELECT Balance INTO v_balance FROM Account WHERE Acc_No = p_acc_no;
+
+    IF p_trans_type = 'D' THEN
+        UPDATE Account SET Balance = Balance + p_amount WHERE Acc_No = p_acc_no;
+        SELECT CONCAT('Deposited ', p_amount, '. New Balance: ', v_balance + p_amount) AS Status;
+    ELSEIF p_trans_type = 'W' THEN
+        IF v_balance >= p_amount THEN
+            UPDATE Account SET Balance = Balance - p_amount WHERE Acc_No = p_acc_no;
+            SELECT CONCAT('Withdrawn ', p_amount, '. New Balance: ', v_balance - p_amount) AS Status;
+        ELSE
+            SELECT 'Insufficient Balance' AS Status;
+        END IF;
+    END IF;
+END //
+
+DELIMITER ;
+
+-- Execute procedure calls
+CALL Update_Account_Balance(1001, 'D', 5000);
+CALL Update_Account_Balance(1002, 'W', 2000); -- Displays Insufficient Balance
+
+-- =========================================================================
+-- Q15] Stored Procedure with Exception Handling (NOT FOUND & Division by 0)
+-- =========================================================================
+DROP TABLE IF EXISTS Student_Marks;
+CREATE TABLE Student_Marks (
+    Roll_No INT PRIMARY KEY,
+    Name VARCHAR(30),
+    Sub1 INT,
+    Sub2 INT,
+    Sub3 INT,
+    Total INT,
+    Percentage DECIMAL(5,2)
+);
+
+INSERT INTO Student_Marks (Roll_No, Name, Sub1, Sub2, Sub3) VALUES
+(1, 'Rohan', 80, 75, 85),
+(2, 'Sneha', 90, 88, 92),
+(3, 'Vikas', 60, 65, 70),
+(4, 'Ananya', 78, 82, 80),
+(5, 'Karan', 50, 55, 60);
+
+DELIMITER //
+
+CREATE PROCEDURE Calc_Student_Result(IN p_roll INT, IN p_max_marks INT)
+BEGIN
+    DECLARE v_s1, v_s2, v_s3, v_total INT;
+    DECLARE v_pct DECIMAL(5,2);
+    DECLARE v_not_found INT DEFAULT 0;
+
+    -- Handler for NO_DATA_FOUND
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_not_found = 1;
+
+    SELECT Sub1, Sub2, Sub3 INTO v_s1, v_s2, v_s3 
+    FROM Student_Marks WHERE Roll_No = p_roll;
+
+    IF v_not_found = 1 THEN
+        SELECT 'Student record does not exist' AS Error_Message;
+    ELSEIF p_max_marks = 0 THEN
+        -- Handling ZERO_DIVIDE explicitly
+        SELECT 'Error: Division by zero in percentage calculation' AS Error_Message;
+    ELSE
+        SET v_total = v_s1 + v_s2 + v_s3;
+        SET v_pct = (v_total / p_max_marks) * 100;
+        UPDATE Student_Marks SET Total = v_total, Percentage = v_pct WHERE Roll_No = p_roll;
+        SELECT * FROM Student_Marks WHERE Roll_No = p_roll;
+    END IF;
+END //
+
+DELIMITER ;
+
+CALL Calc_Student_Result(1, 300);   -- Existing student
+CALL Calc_Student_Result(99, 300);  -- Non-existing student
+
+-- =========================================================================
+-- Q16] Multiple Joins Across 3 Tables
+-- =========================================================================
+DROP TABLE IF EXISTS Enrollment;
+DROP TABLE IF EXISTS Student;
+DROP TABLE IF EXISTS Course;
+
+CREATE TABLE Student (
+    Roll_No INT PRIMARY KEY,
+    Name VARCHAR(30),
+    Branch VARCHAR(20)
+);
+
+CREATE TABLE Course (
+    Course_ID VARCHAR(10) PRIMARY KEY,
+    Course_Name VARCHAR(30),
+    Credits INT
+);
+
+CREATE TABLE Enrollment (
+    Roll_No INT,
+    Course_ID VARCHAR(10),
+    Semester INT,
+    Grade CHAR(2),
+    PRIMARY KEY (Roll_No, Course_ID),
+    FOREIGN KEY (Roll_No) REFERENCES Student(Roll_No),
+    FOREIGN KEY (Course_ID) REFERENCES Course(Course_ID)
+);
+
+INSERT INTO Student VALUES
+(1, 'Amit', 'IT'), (2, 'Neha', 'CS'), (3, 'Raj', 'IT'), (4, 'Simran', 'EXTC'), (5, 'Kunal', 'CS');
+
+INSERT INTO Course VALUES
+('C101', 'DBMS', 4), ('C102', 'OS', 4), ('C103', 'CN', 3), ('C104', 'AI', 4), ('C105', 'Cloud', 3);
+
+INSERT INTO Enrollment VALUES
+(1, 'C101', 5, 'A'),
+(1, 'C102', 5, 'B'),
+(2, 'C101', 5, 'A'),
+(3, 'C103', 5, 'B'),
+(4, 'C104', 5, 'A'); -- Student 5 and Course C105 have no enrollments
+
+-- 1. Inner Join for completed enrollments
+SELECT s.Name, c.Course_Name, e.Grade
+FROM Student s
+INNER JOIN Enrollment e ON s.Roll_No = e.Roll_No
+INNER JOIN Course c ON e.Course_ID = c.Course_ID;
+
+-- 2. Left Outer Join (All students including unenrolled)
+SELECT s.Roll_No, s.Name, c.Course_Name, e.Grade
+FROM Student s
+LEFT OUTER JOIN Enrollment e ON s.Roll_No = e.Roll_No
+LEFT OUTER JOIN Course c ON e.Course_ID = c.Course_ID;
+
+-- 3. Right Outer Join (All courses including zero-enrollment courses)
+SELECT c.Course_ID, c.Course_Name, s.Name AS Student_Name
+FROM Student s
+INNER JOIN Enrollment e ON s.Roll_No = e.Roll_No
+RIGHT OUTER JOIN Course c ON e.Course_ID = c.Course_ID;
+
+-- =========================================================================
+-- Q17] Table Constraints, Defaults & Alters
+-- =========================================================================
+DROP TABLE IF EXISTS Hospital_Staff;
+CREATE TABLE Hospital_Staff (
+    Staff_ID INT PRIMARY KEY,
+    Staff_Name VARCHAR(50) NOT NULL,
+    Role VARCHAR(20) CHECK (Role IN ('Doctor', 'Nurse', 'Technician')),
+    Join_Date DATE DEFAULT (CURRENT_DATE),
+    Age INT,
+    CONSTRAINT chk_staff_age CHECK (Age >= 21)
+);
+
+-- Add Mobile_No with UNIQUE constraint
+ALTER TABLE Hospital_Staff ADD Mobile_No VARCHAR(15) UNIQUE;
+
+-- Modify Staff_Name size from 50 to 100
+ALTER TABLE Hospital_Staff MODIFY Staff_Name VARCHAR(100) NOT NULL;
+
+-- Drop CHECK constraint on Age column
+ALTER TABLE Hospital_Staff DROP CHECK chk_staff_age;
+
+-- =========================================================================
+-- Q18] Parameterized Cursor & Record Updates (MySQL Stored Procedure)
+-- =========================================================================
+DROP TABLE IF EXISTS Orders;
+DROP TABLE IF EXISTS Customer;
+
+CREATE TABLE Customer (
+    Cust_ID INT PRIMARY KEY,
+    Cust_Name VARCHAR(30),
+    City VARCHAR(20)
+);
+
+CREATE TABLE Orders (
+    Order_ID INT PRIMARY KEY,
+    Cust_ID INT,
+    Order_Date DATE,
+    Order_Amount DECIMAL(10,2),
+    FOREIGN KEY (Cust_ID) REFERENCES Customer(Cust_ID)
+);
+
+INSERT INTO Customer VALUES
+(1, 'Ramesh', 'Mumbai'), (2, 'Suresh', 'Pune'), (3, 'Mahesh', 'Mumbai'), (4, 'Dinesh', 'Delhi'), (5, 'Ganesh', 'Mumbai');
+
+INSERT INTO Orders VALUES
+(101, 1, '2026-01-10', 2500.00),
+(102, 2, '2026-01-12', 1800.00),
+(103, 3, '2026-01-15', 4200.00),
+(104, 5, '2026-01-20', 3100.00),
+(105, 4, '2026-01-25', 1500.00);
+
+DELIMITER //
+
+CREATE PROCEDURE Get_City_Orders(IN p_city VARCHAR(20))
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE v_cname VARCHAR(30);
+    DECLARE v_oid INT;
+    DECLARE v_amt DECIMAL(10,2);
+    DECLARE v_row_count INT DEFAULT 0;
+
+    DECLARE cur_orders CURSOR FOR 
+        SELECT c.Cust_Name, o.Order_ID, o.Order_Amount
+        FROM Customer c
+        JOIN Orders o ON c.Cust_ID = o.Cust_ID
+        WHERE c.City = p_city;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    DROP TEMPORARY TABLE IF EXISTS Temp_City_Report;
+    CREATE TEMPORARY TABLE Temp_City_Report (Customer_Name VARCHAR(30), Order_ID INT, Order_Amount DECIMAL(10,2));
+
+    OPEN cur_orders;
+    read_loop: LOOP
+        FETCH cur_orders INTO v_cname, v_oid, v_amt;
+        IF done = 1 THEN
+            LEAVE read_loop;
+        END IF;
+        INSERT INTO Temp_City_Report VALUES (v_cname, v_oid, v_amt);
+        SET v_row_count = v_row_count + 1;
+    END LOOP;
+    CLOSE cur_orders;
+
+    SELECT * FROM Temp_City_Report;
+    SELECT v_row_count AS Total_Matching_Orders;
+END //
+
+DELIMITER ;
+
+CALL Get_City_Orders('Mumbai');
+
+-- =========================================================================
+-- Q19] Stored Function: Calculate_Gross_Salary
+-- =========================================================================
+DROP TABLE IF EXISTS Salary_Structure;
+CREATE TABLE Salary_Structure (
+    Emp_ID INT PRIMARY KEY,
+    Basic DECIMAL(10,2),
+    HRA DECIMAL(10,2),
+    DA DECIMAL(10,2)
+);
+
+INSERT INTO Salary_Structure VALUES
+(101, 25000, 10000, 8000),
+(102, 18000, 7000, 5000),
+(103, 30000, 12000, 9000),
+(104, 22000, 8000, 6000),
+(105, 35000, 15000, 10000);
+
+DELIMITER //
+
+CREATE FUNCTION Calculate_Gross_Salary(p_empid INT) 
+RETURNS DECIMAL(10,2)
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE v_gross DECIMAL(10,2);
+    SELECT (Basic + HRA + DA) INTO v_gross 
+    FROM Salary_Structure WHERE Emp_ID = p_empid;
+    RETURN v_gross;
+END //
+
+DELIMITER ;
+
+SELECT Emp_ID, Basic, Calculate_Gross_Salary(Emp_ID) AS Calculated_Gross_Salary
+FROM Salary_Structure
+WHERE Calculate_Gross_Salary(Emp_ID) > 40000;
+
+-- =========================================================================
+-- Q20] Complex Grouping with HAVING & Multi-Column Aggregation
+-- =========================================================================
+DROP TABLE IF EXISTS Sales_Order;
+CREATE TABLE Sales_Order (
+    Order_No INT PRIMARY KEY,
+    Salesman_ID INT,
+    Branch_Name VARCHAR(20),
+    Order_Amount DECIMAL(10,2),
+    Order_Year INT
+);
+
+INSERT INTO Sales_Order VALUES
+(1, 201, 'Mumbai', 45000, 2025),
+(2, 201, 'Mumbai', 65000, 2025),
+(3, 202, 'Mumbai', 30000, 2026),
+(4, 203, 'Mumbai', 25000, 2026),
+(5, 202, 'Pune', 55000, 2025),
+(6, 202, 'Pune', 40000, 2026),
+(7, 204, 'Delhi', 80000, 2025),
+(8, 204, 'Delhi', 35000, 2026);
+
+-- 1. Total and average order amount by each branch for each year
+SELECT Branch_Name, Order_Year, SUM(Order_Amount) AS Total_Amount, AVG(Order_Amount) AS Avg_Amount
+FROM Sales_Order
+GROUP BY Branch_Name, Order_Year;
+
+-- 2. Branches handling more than 3 orders in total
+SELECT Branch_Name, COUNT(Order_No) AS Total_Orders
+FROM Sales_Order
+GROUP BY Branch_Name
+HAVING COUNT(Order_No) > 3;
+
+-- 3. Salespersons with total sales > 1,00,000 across all branches
+SELECT Salesman_ID, SUM(Order_Amount) AS Total_Sales
+FROM Sales_Order
+GROUP BY Salesman_ID
+HAVING SUM(Order_Amount) > 100000;
+
+-- 4. Highest and lowest individual order amounts per branch
+SELECT Branch_Name, MAX(Order_Amount) AS Highest_Order, MIN(Order_Amount) AS Lowest_Order
+FROM Sales_Order
+GROUP BY Branch_Name;
+
+-- =========================================================================
+-- Q21] Row-Level Auditing Trigger
+-- =========================================================================
+DROP TABLE IF EXISTS Product_Price_Audit;
+DROP TABLE IF EXISTS Product;
+
+CREATE TABLE Product (
+    Prod_ID INT PRIMARY KEY,
+    Prod_Name VARCHAR(30),
+    Price DECIMAL(10,2),
+    Last_Modified_Date DATETIME
+);
+
+CREATE TABLE Product_Price_Audit (
+    Audit_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Prod_ID INT,
+    Old_Price DECIMAL(10,2),
+    New_Price DECIMAL(10,2),
+    Change_Timestamp DATETIME,
+    Changed_By VARCHAR(50)
+);
+
+INSERT INTO Product VALUES (1, 'Laptop', 55000.00, NOW());
+
+DELIMITER //
+
+CREATE TRIGGER trg_audit_product_price
+AFTER UPDATE ON Product
+FOR EACH ROW
+BEGIN
+    IF OLD.Price <> NEW.Price THEN
+        INSERT INTO Product_Price_Audit (Prod_ID, Old_Price, New_Price, Change_Timestamp, Changed_By)
+        VALUES (NEW.Prod_ID, OLD.Price, NEW.Price, NOW(), CURRENT_USER());
+    END IF;
+END //
+
+DELIMITER ;
+
+-- Demonstrate update and check audit trail
+UPDATE Product SET Price = 58000.00, Last_Modified_Date = NOW() WHERE Prod_ID = 1;
+SELECT * FROM Product_Price_Audit;
+
+-- =========================================================================
+-- Q22] SQL Date, Time & Conversion Functions
+-- =========================================================================
+DROP TABLE IF EXISTS Car_Rental;
+CREATE TABLE Car_Rental (
+    Rental_ID INT PRIMARY KEY,
+    Customer_Name VARCHAR(30),
+    Pickup_Date DATE,
+    Return_Date DATE,
+    Daily_Rate DECIMAL(10,2)
+);
+
+INSERT INTO Car_Rental VALUES
+(1, 'Rohan', '2026-11-02', '2026-11-06', 1500.00),
+(2, 'Priya', '2026-10-15', '2026-10-20', 2000.00),
+(3, 'Karan', '2026-11-10', '2026-11-15', 1800.00),
+(4, 'Sneha', '2026-09-01', '2026-09-04', 2200.00),
+(5, 'Amit',  '2026-11-12', '2026-11-14', 1600.00);
+
+-- 1. Total rental duration in days
+SELECT Rental_ID, Customer_Name, DATEDIFF(Return_Date, Pickup_Date) AS Duration_Days FROM Car_Rental;
+
+-- 2. Total billing amount
+SELECT Rental_ID, Customer_Name, (DATEDIFF(Return_Date, Pickup_Date) * Daily_Rate) AS Total_Bill FROM Car_Rental;
+
+-- 3. Rentals where Pickup_Date falls in current calendar month
+SELECT * FROM Car_Rental 
+WHERE MONTH(Pickup_Date) = MONTH(CURDATE()) AND YEAR(Pickup_Date) = YEAR(CURDATE());
+
+-- 4. Format Pickup_Date as 'DD-Mon-YYYY, Day' (e.g., '15-Aug-2024, Thursday')
+SELECT Rental_ID, DATE_FORMAT(Pickup_Date, '%d-%b-%Y, %W') AS Formatted_Pickup FROM Car_Rental;
+
+-- 5. Add 7 days grace period to Return_Date as Final_Due_Date
+SELECT Rental_ID, Return_Date, DATE_ADD(Return_Date, INTERVAL 7 DAY) AS Final_Due_Date FROM Car_Rental;
+
+-- =========================================================================
+-- Q23] Complex Joins with Multi-Table Schema (Sailors, Boats, Reserves)
+-- =========================================================================
+DROP TABLE IF EXISTS Reserves;
+DROP TABLE IF EXISTS Sailors;
+DROP TABLE IF EXISTS Boats;
+
+CREATE TABLE Sailors (
+    sid INT PRIMARY KEY,
+    sname VARCHAR(20),
+    rating INT,
+    age DECIMAL(4,1)
+);
+
+CREATE TABLE Boats (
+    bid INT PRIMARY KEY,
+    bname VARCHAR(20),
+    color VARCHAR(15)
+);
+
+CREATE TABLE Reserves (
+    sid INT,
+    bid INT,
+    day DATE,
+    PRIMARY KEY (sid, bid, day),
+    FOREIGN KEY (sid) REFERENCES Sailors(sid),
+    FOREIGN KEY (bid) REFERENCES Boats(bid)
+);
+
+INSERT INTO Sailors VALUES (22, 'Dustin', 7, 45.0), (29, 'Brutus', 1, 33.0), (31, 'Lubber', 8, 55.5), (32, 'Andy', 8, 25.5);
+INSERT INTO Boats VALUES (101, 'Interlake', 'Blue'), (102, 'Interlake', 'Red'), (103, 'Clipper', 'Green'), (104, 'Marine', 'Red');
+INSERT INTO Reserves VALUES 
+(22, 102, '2026-10-10'),
+(22, 104, '2026-10-10'), -- Reserved 2 distinct red boats on same day
+(31, 102, '2026-11-10'),
+(31, 103, '2026-11-12'); -- Reserved both Red and Green
+
+-- 1. Sailors who reserved a 'Red' boat but NOT a 'Green' boat
+SELECT DISTINCT s.sname
+FROM Sailors s
+JOIN Reserves r ON s.sid = r.sid
+JOIN Boats b ON r.bid = b.bid
+WHERE b.color = 'Red'
+  AND s.sid NOT IN (
+      SELECT r2.sid FROM Reserves r2 JOIN Boats b2 ON r2.bid = b2.bid WHERE b2.color = 'Green'
+  );
+
+-- 2. Sailors who reserved at least two distinct boats on the same day
+SELECT s.sname
+FROM Sailors s
+JOIN Reserves r ON s.sid = r.sid
+GROUP BY s.sid, s.sname, r.day
+HAVING COUNT(DISTINCT r.bid) >= 2;
+
+-- 3. FULL OUTER JOIN between Sailors and Reserves (Simulated via UNION in MySQL)
+SELECT s.sid, s.sname, r.bid, r.day
+FROM Sailors s
+LEFT JOIN Reserves r ON s.sid = r.sid
+UNION
+SELECT s.sid, s.sname, r.bid, r.day
+FROM Sailors s
+RIGHT JOIN Reserves r ON s.sid = r.sid;
+
+-- =========================================================================
+-- Q24] SQL Set Operations & Correlated Subqueries
+-- =========================================================================
+DROP TABLE IF EXISTS Deposit;
+DROP TABLE IF EXISTS Borrow;
+DROP TABLE IF EXISTS Branch;
+
+CREATE TABLE Branch (bcode VARCHAR(10) PRIMARY KEY, bname VARCHAR(20), city VARCHAR(20));
+CREATE TABLE Deposit (actno INT PRIMARY KEY, cname VARCHAR(20), bcode VARCHAR(10), amount DECIMAL(10,2), adate DATE);
+CREATE TABLE Borrow (loanno INT PRIMARY KEY, cname VARCHAR(20), bcode VARCHAR(10), amount DECIMAL(10,2), ldate DATE);
+
+INSERT INTO Branch VALUES ('B1', 'Andheri', 'Mumbai'), ('B2', 'Kothrud', 'Pune');
+INSERT INTO Deposit VALUES (1, 'Anil', 'B1', 50000, '2026-01-01'), (2, 'Sunil', 'B2', 30000, '2026-02-01');
+INSERT INTO Borrow VALUES (101, 'Anil', 'B1', 80000, '2026-03-01'), (102, 'Ravi', 'B1', 40000, '2026-03-05');
+
+-- 1. Customers with both deposit and loan in the same branch (INTERSECT - supported in MySQL 8.0.31+)
+SELECT cname, bcode FROM Deposit
+INTERSECT
+SELECT cname, bcode FROM Borrow;
+
+-- 2. Customers with deposit account but NO loan account (EXCEPT - supported in MySQL 8.0.31+)
+SELECT cname FROM Deposit
+EXCEPT
+SELECT cname FROM Borrow;
+
+-- 3. Customers whose loan amount > average loan amount of their respective branch
+SELECT b1.cname, b1.bcode, b1.amount
+FROM Borrow b1
+WHERE b1.amount > (
+    SELECT AVG(b2.amount) FROM Borrow b2 WHERE b2.bcode = b1.bcode
+);
+
+-- =========================================================================
+-- Q25] DCL & Grant/Revoke with Views
+-- =========================================================================
+DROP TABLE IF EXISTS Patient_Records;
+CREATE TABLE Patient_Records (
+    PID INT PRIMARY KEY,
+    PName VARCHAR(30),
+    Disease VARCHAR(30),
+    Treatment_Cost DECIMAL(10,2),
+    Doctor_Assigned VARCHAR(30)
+);
+
+CREATE OR REPLACE VIEW Public_Patient_View AS
+SELECT PID, PName, Doctor_Assigned FROM Patient_Records;
+
+CREATE USER IF NOT EXISTS 'Junior_Doctor'@'localhost' IDENTIFIED BY 'doc123';
+
+-- Grant SELECT and UPDATE on view
+GRANT SELECT, UPDATE ON ty_it_dbms.Public_Patient_View TO 'Junior_Doctor'@'localhost';
+
+-- Revoke UPDATE permission
+REVOKE UPDATE ON ty_it_dbms.Public_Patient_View FROM 'Junior_Doctor'@'localhost';
+
+-- Verify access privileges in MySQL data dictionary
+SELECT * FROM information_schema.TABLE_PRIVILEGES 
+WHERE GRANTEE LIKE '%Junior_Doctor%';
+
+-- =========================================================================
+-- Q26] Transaction Control Language (TCL) with SAVEPOINT
+-- =========================================================================
+DROP TABLE IF EXISTS Inventory;
+CREATE TABLE Inventory (
+    Item_ID INT PRIMARY KEY,
+    Item_Name VARCHAR(30),
+    Quantity INT
+);
+
+-- Insert two items and commit
+START TRANSACTION;
+INSERT INTO Inventory VALUES (1, 'Keyboard', 50), (2, 'Mouse', 80);
+COMMIT;
+
+-- Start new transaction with Savepoints
+START TRANSACTION;
+INSERT INTO Inventory VALUES (3, 'Monitor', 20);
+SAVEPOINT SP1;
+
+UPDATE Inventory SET Quantity = 45 WHERE Item_ID = 1;
+SAVEPOINT SP2;
+
+DELETE FROM Inventory WHERE Item_ID = 2;
+
+-- Rollback to SP1 (undoes update on Item 1 and deletion of Item 2; keeps Item 3)
+ROLLBACK TO SP1;
+
+SELECT * FROM Inventory;
+COMMIT;
+
+-- =========================================================================
+-- Q27] SQL String Functions & Pattern Matching
+-- =========================================================================
+DROP TABLE IF EXISTS Customer_Master;
+CREATE TABLE Customer_Master (
+    Cust_ID INT PRIMARY KEY,
+    Full_Name VARCHAR(40),
+    Email VARCHAR(40),
+    City VARCHAR(20),
+    Contact_No VARCHAR(15)
+);
+
+INSERT INTO Customer_Master VALUES
+(1, 'Rahul Sharma', 'rahul.s@gmail.com', 'Mumbai', '9876543210'),
+(2, 'Sneha Patil', 'sneha99@yahoo.com', 'Pune', '9123456789'),
+(3, 'Karan Joshi', 'karan.j@outlook.com', 'Delhi', '9988776655'),
+(4, 'Manish Verma', 'manish.v@gmail.com', 'Mumbai', '9811223344'),
+(5, 'Priya Nair', 'priya.n@yahoo.com', 'Kochi', '9765432109');
+
+-- 1. Uppercase names + character length
+SELECT UPPER(Full_Name) AS Upper_Name, CHAR_LENGTH(Full_Name) AS Name_Length FROM Customer_Master;
+
+-- 2. Extract username before '@'
+SELECT Email, SUBSTRING_INDEX(Email, '@', 1) AS Username FROM Customer_Master;
+
+-- 3. Customers whose name has 'a' as the second character
+SELECT * FROM Customer_Master WHERE Full_Name LIKE '_a%';
+
+-- 4. Mask first 6 digits of Contact_No as XXXXXX
+SELECT Full_Name, CONCAT('XXXXXX', RIGHT(Contact_No, 4)) AS Masked_Contact FROM Customer_Master;
+
+-- 5. Emails belonging to '@gmail.com' or '@yahoo.com'
+SELECT * FROM Customer_Master WHERE Email LIKE '%@gmail.com' OR Email LIKE '%@yahoo.com';
+
+-- =========================================================================
+-- Q28] EER Modeling: Vehicle Rental System
+-- =========================================================================
+/*
+[CUSTOMER] (PK: Cust_ID, Name, License_No, Phone)
+     | (1)
+     | rents
+     v (N)
+[RENTAL] (PK: Rental_ID, Start_Date, Return_Date, Total_Charge, FK: Cust_ID, FK: Vehicle_ID)
+     | (N)
+     | involves
+     v (1)
+[VEHICLE] (PK: Vehicle_ID, License_Plate, Model, Rental_Rate)
+     || (Total Participation: Double Line)
+     +--- (d : Disjoint Specialization) ---+
+     |                  |                  |
+     v                  v                  v
+   [CAR]             [TRUCK]          [MOTORCYCLE]
+(No_of_Seats)   (Cargo_Capacity)       (Engine_CC)
+*/
+
+-- =========================================================================
+-- Q29] EER Modeling: E-Commerce Multi-Vendor Platform
+-- =========================================================================
+/*
+1. User Hierarchy (Overlapping Specialization):
+   [USER] (PK: User_ID, Name, Email, Password)
+     |
+     +--- (o : Overlapping Specialization — a user can be both Buyer and Seller) ---+
+     |                                                                             |
+     v                                                                             v
+  [BUYER] (Shipping_Address, Cart_ID)                                           [SELLER] (Store_Name, GST_No)
+
+2. Payment Hierarchy (Disjoint Specialization):
+   [PAYMENT] (PK: Payment_ID, Amount, Payment_Date, FK: Order_ID)
+     |
+     +--- (d : Disjoint Specialization) ---+
+     |                  |                  |
+     v                  v                  v
+[CREDIT_CARD]         [UPI]          [NET_BANKING]
+ (Card_No, Expiry)  (UPI_ID)      (Bank_Name, Txn_Ref)
+
+3. Relationships & Cardinalities:
+   - [SELLER] (1) --- lists ---> (N) [PRODUCT] (PK: Prod_ID, Title, Price)
+   - [BUYER] (1) --- places ---> (N) [ORDER] (PK: Order_ID, Order_Date, Status)
+   - [ORDER] (M) --- contains ---> (N) [PRODUCT] (Attributes: Qty, Unit_Price)
+   - [ORDER] (1) --- paid_via ---> (1) [PAYMENT]
+   - Weak Entity: [ORDER_ITEM] (Partial Key: Item_Seq_No, identifying relationship with ORDER)
+
+4. Inheritance Explanation:
+   Subclasses (Buyer, Seller) inherit all attributes and the primary key (User_ID) from superclass User.
+   Similarly, Credit_Card, UPI, and Net_Banking inherit Payment_ID, Amount, and Payment_Date from Payment.
+*/
